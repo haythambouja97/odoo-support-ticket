@@ -3,6 +3,7 @@ from odoo import api, fields, models
 class SupportTicket(models.Model):
 
     _name = "support.ticket"
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _description = "Customer Support Ticket"
     _order = "create_date desc"
 
@@ -77,6 +78,7 @@ class SupportTicket(models.Model):
         string="Status",
         default="new",
         required=True,
+        tracking=True,
         group_expand="_group_expand_states",
     )
 

@@ -28,7 +28,7 @@ Features:
     'installable': True,
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base', 'mail', 'portal'],
 
     # always loaded, order matters
     'data': [
