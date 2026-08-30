@@ -33,5 +33,6 @@ Features:
     # always loaded, order matters
     'data': [
         'security/ir.model.access.csv',
+        'views/views.xml',
     ],
 }
