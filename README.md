@@ -2,10 +2,10 @@
 
 An Odoo 19 app for tracking customer support tickets. One model, `support.ticket`,
 with auto-generated references, a customer and assignee, priority, and a four-step
-status workflow. List, form, kanban and search views under a Support menu.
+status workflow. Internal users get list, form, kanban and search views under a Support
+menu; customers get a portal where they can submit tickets and follow them.
 
-Only depends on `base`, so it installs on a bare database without pulling in CRM or
-Project.
+Depends on `base`, `mail` and `portal`.
 
 ## Installation
 
@@ -62,7 +62,12 @@ addons paths when asked.
 - Kanban board grouped by status, drag-and-drop between columns, all columns visible
   even when empty
 - Search filters (by status, "My Tickets") and grouping by status, priority or customer
-- Access rights for internal users
+- Chatter on every ticket — message log, followers and scheduled activities, via
+  `mail.thread` and `mail.activity.mixin`
+- Customer portal: a ticket list at `/my/tickets`, a detail page with chatter, and a
+  submission form, plus a card on the portal home with a ticket count
+- Access rights for internal users, and a separate portal ACL and record rule scoping
+  customers to their own tickets
 - Archiving via the standard `active` flag
 
 ## Architecture
@@ -74,12 +79,17 @@ support_ticket/
 ├── models/
 │   ├── __init__.py
 │   └── models.py              # the support.ticket model
+├── controllers/
+│   ├── __init__.py
+│   └── portal.py              # the /my/tickets routes
 ├── security/
-│   └── ir.model.access.csv    # CRUD grants
+│   ├── ir.model.access.csv    # CRUD grants, internal and portal
+│   └── security.xml           # record rule scoping portal users to their own tickets
 ├── data/
 │   └── ir_sequence.xml        # seeds the sequence for ticket references
 └── views/
-    └── views.xml              # action, views, menus
+    ├── views.xml              # action, backend views, menus
+    └── portal_templates.xml   # QWeb templates for the portal pages
 ```
 
 `__manifest__.py` is what makes this a module — Odoo scans the addons paths for
@@ -89,6 +99,13 @@ file goes first.
 `security/ir.model.access.csv` isn't optional. Odoo denies access by default, so a
 model with no ACL row is unreachable for everyone except the superuser. The filename
 has to match the model it loads into, so don't rename it.
+
+`security/security.xml` holds the portal record rule. ACLs decide which models you can
+touch; record rules decide which rows. Portal access needs both.
+
+`controllers/portal.py` is the only part of the module that isn't declarative. It
+subclasses `CustomerPortal` from the `portal` addon, which is what makes the pages
+inherit the portal layout, breadcrumbs and home page.
 
 `data/ir_sequence.xml` is marked `noupdate="1"` so upgrades don't reset the counter
 and start handing out references that already exist.
@@ -121,14 +138,19 @@ field from Python leaves the column behind.
 ### Standalone model instead of inheriting `project.task`
 
 Inheriting `project.task` would have given me stages, assignment and a kanban board for
-free. I decided against it, mostly because of the coupling — it makes `project` a hard
-dependency, which pulls in `mail`, `analytic` and `resource` with their menus, and
-tickets would then appear inside Project's own views and reports.
+free. I decided against it, mostly because of the coupling: tickets would inherit
+Project's own views, reports and menus, and every customisation anyone made to tasks
+later would land on tickets too.
 
 The vocabulary doesn't really fit either. Tasks have a `project_id`, planned hours and
 timesheets; tickets need a customer, a priority and a small fixed set of statuses. You
 end up carrying fields that never apply or quietly repurposing ones that mean something
 else.
+
+The module did end up depending on `mail` and `portal` for the chatter and the customer
+pages, so it isn't as dependency-free as I first intended. Those two are deliberate and
+narrow, though — `mail` and `portal` are infrastructure that most apps build on, whereas
+`project` would have brought a whole application's data model with it.
 
 The cost is that everything Project would have given me has to be built by hand, and I
 haven't built all of it yet.
@@ -162,19 +184,33 @@ Both of these happen to be the ORM's defaults for required and optional many2one
 so neither line changes behaviour. I left them in so the intent is visible at the field
 rather than inferred from whether `required` is set.
 
-### No customer portal
+### Customer portal
 
-No portal access, no `/my/tickets`, no website form, nothing for `base.group_portal` in
-the ACL. Internal users only.
+I originally scoped the portal out and asked whether it was expected. The answer was
+yes — customers should be able to submit and follow their own tickets from the website —
+so it went in.
 
-Portal access isn't one feature — it's a portal ACL plus record rules scoping customers
-strictly to their own tickets, a controller and templates, token access for people
-without a login, a submission form, and email notifications. Most of it is
-security-critical, and one bad record rule means customer A reads customer B's tickets.
+It's three routes on a controller inheriting `CustomerPortal`: a list at `/my/tickets`, a
+detail page with the chatter on it, and a submission form. There's also an override of
+`_prepare_home_portal_values` so the ticket count shows on the portal home card.
 
-Leaving it out kept this to one model, one ACL and four views with the internal workflow
-working properly. Nothing here blocks adding it later: `customer_id` already points at
-`res.partner`, which is what portal users attach to.
+Security is two layers, because ACLs and record rules answer different questions. The ACL
+grants `base.group_portal` read and create but not write or delete, which decides what a
+portal user can do to the model at all. The record rule
+`[('customer_id', '=', user.partner_id.id)]` decides which rows they see, so a customer
+only ever gets their own tickets — the `search([])` in the list route looks unscoped but
+isn't, because the rule is applied underneath it. The detail route also calls
+`check_access('read')` explicitly, so guessing another ticket's id in the URL raises
+rather than leaking anything.
+
+On submission, `customer_id` comes from `request.env.user.partner_id`, never from the
+form, so a customer can't open a ticket in someone else's name.
+
+The one thing worth explaining is the `sudo()` on create. It isn't there to dodge the
+ACL — it's there because the `create` override calls `next_by_code`, and read access to
+`ir.sequence` is granted to internal users only. Without `sudo()` a portal submission
+fails on the sequence lookup rather than on the ticket itself. Forcing `customer_id` from
+the session is what keeps that safe.
 
 ## Difficulties encountered
 
@@ -197,6 +233,16 @@ turns out to be a Python argument on the field definition now, not a view attrib
 added `_group_expand_states` on the model, which returns every key from the `state`
 selection, and pointed the field at it with
 `group_expand="_group_expand_states"`. All four columns render now, empty or not.
+
+**A portal route that 404'd because I'd dropped the `@`.** I wrote the first portal
+route, restarted, and `/my/tickets` returned a 404. The module had installed cleanly, the
+template was there, the controller file was being imported — nothing anywhere said
+anything was wrong. I'd written `http.route(...)` without the `@`, so instead of
+decorating the function it just called `http.route` and threw the result away, leaving an
+ordinary method that Odoo had no reason to map to a URL. The pattern is the same one as
+the `group_expand` problem: valid Python that does nothing, and no error to lead you to
+it. Now when something doesn't appear at all — a route, a menu, a kanban column — my
+first assumption is that the code never registered, not that it registered wrongly.
 
 **Menus that were missing because the file never parsed.** I added the two `<menuitem>`
 records, ran `-u`, the server started normally, and the Support menu wasn't there. I
