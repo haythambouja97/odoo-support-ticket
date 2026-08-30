@@ -1,33 +1,36 @@
 {
-    'name': "support_ticket",
+    'name': "Support Ticket Management",
 
-    'summary': "Short (1 phrase/line) summary of the module's purpose",
+    'summary': "Manage customer support tickets through their lifecycle",
 
     'description': """
-Long description of module's purpose
+Support Ticket Management
+=========================
+
+Create, assign, prioritize and track customer support tickets.
+
+Features:
+- Ticket creation linked to customers (res.partner)
+- Assignment to internal users
+- Priority and type classification
+- Status workflow from reception to closure
+- Search, filter and group tickets
     """,
 
-    'author': "My Company",
-    'website': "https://www.yourcompany.com",
+    'author': "Haytham Boujelben",
+    'website': "https://github.com/haythambouja97/odoo-support-ticket",
 
-    # Categories can be used to filter modules in modules listing
-    # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
-    # for the full list
-    'category': 'Uncategorized',
-    'version': '0.1',
+    'category': 'Services/Helpdesk',
+    'version': '19.0.1.0.0',
+    'license': 'LGPL-3',
+
+    'application': True,
+    'installable': True,
 
     # any module necessary for this one to work correctly
     'depends': ['base'],
 
-    # always loaded
+    # always loaded, order matters
     'data': [
-        # 'security/ir.model.access.csv',
-        'views/views.xml',
-        'views/templates.xml',
-    ],
-    # only loaded in demonstration mode
-    'demo': [
-        'demo/demo.xml',
     ],
 }
-
