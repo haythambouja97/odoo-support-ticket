@@ -27,3 +27,18 @@ class SupportTicketPortal(CustomerPortal):
             'ticket': ticket,
             'page_name': 'ticket',
         })
+
+    @http.route(['/my/tickets/new'], type='http', auth='user', website=True, methods=['GET', 'POST'], csrf=True)
+    def portal_ticket_new(self, **post):
+        if request.httprequest.method == 'POST':
+            ticket = request.env['support.ticket'].sudo().create({
+                'title': post.get('title'),
+                'description': post.get('description'),
+                'customer_id': request.env.user.partner_id.id,
+                'priority': post.get('priority', '1'),
+            })
+            return request.redirect('/my/tickets/%s' % ticket.id)
+
+        return request.render('support_ticket.portal_ticket_new', {
+            'page_name': 'ticket',
+        })

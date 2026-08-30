@@ -25,6 +25,7 @@
             </t>
 
             <t t-if="tickets">
+            <a href="/my/tickets/new" class="btn btn-primary mb-3">New Ticket</a>
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -65,6 +66,32 @@
                     <t t-set="object" t-value="ticket"/>
                 </t>
             </div>
+        </t>
+    </template>
+        <template id="portal_ticket_new" name="New Ticket">
+        <t t-call="portal.portal_layout">
+            <h3>Submit a new ticket</h3>
+            <form action="/my/tickets/new" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="title" class="form-control" required="required"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="5"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Priority</label>
+                    <select name="priority" class="form-select">
+                        <option value="0">Low</option>
+                        <option value="1" selected="selected">Medium</option>
+                        <option value="2">High</option>
+                        <option value="3">Urgent</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
         </t>
     </template>
 </odoo>
