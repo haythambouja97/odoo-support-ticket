@@ -1,0 +1,60 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+<!--
+    <record model="ir.ui.view" id="support_ticket.list">
+      <field name="name">support_ticket list</field>
+      <field name="model">support_ticket.support_ticket</field>
+      <field name="arch" type="xml">
+        <list>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </list>
+      </field>
+    </record>
+-->
+
+    <!-- actions opening views on models -->
+<!--
+    <record model="ir.actions.act_window" id="support_ticket.action_window">
+      <field name="name">support_ticket window</field>
+      <field name="res_model">support_ticket.support_ticket</field>
+      <field name="view_mode">list,form</field>
+    </record>
+-->
+
+    <!-- server action to the one above -->
+<!--
+    <record model="ir.actions.server" id="support_ticket.action_server">
+      <field name="name">support_ticket server</field>
+      <field name="model_id" ref="model_support_ticket_support_ticket"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "list,form",
+          "res_model": model._name,
+        }
+      </field>
+    </record>
+-->
+
+    <!-- Top menu item -->
+<!--
+    <menuitem name="support_ticket" id="support_ticket.menu_root"/>
+-->
+    <!-- menu categories -->
+<!--
+    <menuitem name="Menu 1" id="support_ticket.menu_1" parent="support_ticket.menu_root"/>
+    <menuitem name="Menu 2" id="support_ticket.menu_2" parent="support_ticket.menu_root"/>
+-->
+    <!-- actions -->
+<!--
+    <menuitem name="List" id="support_ticket.menu_1_list" parent="support_ticket.menu_1"
+              action="support_ticket.action_window"/>
+    <menuitem name="Server to list" id="support_ticket" parent="support_ticket.menu_2"
+              action="support_ticket.action_server"/>
+-->
+  </data>
+</odoo>
