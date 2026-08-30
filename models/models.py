@@ -1,17 +1,67 @@
-# from odoo import models, fields, api
+from odoo import fields, models
 
 
-# class support_ticket(models.Model):
-#     _name = 'support_ticket.support_ticket'
-#     _description = 'support_ticket.support_ticket'
+class SupportTicket(models.Model):
+    _name = "support.ticket"
+    _description = "Customer Support Ticket"
+    _order = "create_date desc"
 
-#     name = fields.Char()
-#     value = fields.Integer()
-#     value2 = fields.Float(compute="_value_pc", store=True)
-#     description = fields.Text()
-#
-#     @api.depends('value')
-#     def _value_pc(self):
-#         for record in self:
-#             record.value2 = float(record.value) / 100
+    name = fields.Char(
+        string="Ticket Reference",
+        required=True,
+        copy=False,
+        readonly=True,
+        default="New",
+    )
+
+    title = fields.Char(
+        string="Title",
+        required=True,
+    )
+
+    description = fields.Text(
+        string="Description",
+    )
+
+    customer_id = fields.Many2one(
+        "res.partner",
+        string="Customer",
+        required=True,
+        ondelete="restrict",
+    )
+
+    assigned_user_id = fields.Many2one(
+        "res.users",
+        string="Assigned To",
+        ondelete="set null",
+    )
+
+    priority = fields.Selection(
+        [
+            ("0", "Low"),
+            ("1", "Medium"),
+            ("2", "High"),
+            ("3", "Urgent"),
+        ],
+        string="Priority",
+        default="1",
+        required=True,
+    )
+
+    state = fields.Selection(
+        [
+            ("new", "New"),
+            ("in_progress", "In Progress"),
+            ("resolved", "Resolved"),
+            ("closed", "Closed"),
+        ],
+        string="Status",
+        default="new",
+        required=True,
+    )
+
+    active = fields.Boolean(
+        string="Active",
+        default=True,
+    )
 
