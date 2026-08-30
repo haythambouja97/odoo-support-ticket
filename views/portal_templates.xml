@@ -36,7 +36,11 @@
                     </thead>
                     <tbody>
                         <tr t-foreach="tickets" t-as="ticket">
-                            <td><span t-field="ticket.name"/></td>
+                            <td>
+                                <a t-attf-href="/my/tickets/#{ticket.id}">
+                                    <span t-field="ticket.name"/>
+                                </a>
+                            </td>
                             <td><span t-field="ticket.title"/></td>
                             <td><span t-field="ticket.priority"/></td>
                             <td><span t-field="ticket.state"/></td>
@@ -44,6 +48,23 @@
                     </tbody>
                 </table>
             </t>
+        </t>
+    </template>
+        <template id="portal_ticket_detail" name="Ticket Detail">
+        <t t-call="portal.portal_layout">
+            <div class="row">
+                <div class="col-12">
+                    <h3><span t-field="ticket.name"/> — <span t-field="ticket.title"/></h3>
+                    <p><strong>Status:</strong> <span t-field="ticket.state"/></p>
+                    <p><strong>Priority:</strong> <span t-field="ticket.priority"/></p>
+                    <p t-field="ticket.description"/>
+                </div>
+            </div>
+            <div class="mt-4">
+                <t t-call="portal.message_thread">
+                    <t t-set="object" t-value="ticket"/>
+                </t>
+            </div>
         </t>
     </template>
 </odoo>
