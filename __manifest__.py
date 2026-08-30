@@ -36,5 +36,6 @@ Features:
         'data/ir_sequence.xml',
         'security/security.xml',
         'views/views.xml',
+        'views/portal_templates.xml',
     ],
 }
