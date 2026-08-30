@@ -25,7 +25,13 @@
         <field name="arch" type="xml">
             <form string="Ticket">
                 <header>
-                    <field name="state" widget="statusbar"/>
+                    <button name="action_start" type="object"
+                            string="Start Progress" class="btn-primary"
+                            invisible="state != 'new'"/>
+                    <button name="action_resolve" type="object"
+                            string="Resolve" class="btn-primary"
+                            invisible="state != 'in_progress'"/>
+                    <field name="state" widget="statusbar" clickable="1"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -41,9 +47,12 @@
                             <field name="priority" widget="priority"/>
                         </group>
                     </group>
-                    <group string="Description">
-                        <field name="description" nolabel="1"/>
-                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" nolabel="1"
+                                   placeholder="Describe the issue..."/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -81,7 +90,7 @@
         <field name="name">support.ticket.kanban</field>
         <field name="model">support.ticket</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state">
+            <kanban default_group_by="state" quick_create="false">
                 <field name="state"/>
                 <templates>
                     <t t-name="card">

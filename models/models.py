@@ -2,6 +2,11 @@ from odoo import api, fields, models
 
 class SupportTicket(models.Model):
 
+    _name = "support.ticket"
+    _description = "Customer Support Ticket"
+    _order = "create_date desc"
+
+    
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -9,9 +14,16 @@ class SupportTicket(models.Model):
                 vals['name'] = self.env['ir.sequence'].next_by_code('support.ticket') or 'New'
         return super().create(vals_list)
 
-    _name = "support.ticket"
-    _description = "Customer Support Ticket"
-    _order = "create_date desc"
+    @api.model
+    def _group_expand_states(self, states, domain):
+        return [key for key, _ in type(self).state.selection]
+
+    def action_start(self):
+        self.write({'state': 'in_progress'})
+
+    def action_resolve(self):
+        self.write({'state': 'resolved'})
+
 
     name = fields.Char(
         string="Ticket Reference",
@@ -65,6 +77,7 @@ class SupportTicket(models.Model):
         string="Status",
         default="new",
         required=True,
+        group_expand="_group_expand_states",
     )
 
     active = fields.Boolean(
