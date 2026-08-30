@@ -1,7 +1,14 @@
-from odoo import fields, models
-
+from odoo import api, fields, models
 
 class SupportTicket(models.Model):
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('support.ticket') or 'New'
+        return super().create(vals_list)
+
     _name = "support.ticket"
     _description = "Customer Support Ticket"
     _order = "create_date desc"
