@@ -1,14 +1,30 @@
 <odoo>
     <template id="portal_my_home_ticket" name="Portal My Home : tickets"
-              inherit_id="portal.portal_my_home" priority="40">
-        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+              inherit_id="portal.portal_my_home" customize_show="True" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_client_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_client_category" position="inside">
             <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/support_ticket/static/description/icon.png'"/>
+                <t t-set="icon" t-value="'/portal/static/src/img/portal-addresses.svg'"/>
                 <t t-set="title">Support Tickets</t>
                 <t t-set="url" t-value="'/my/tickets'"/>
                 <t t-set="text">Follow your support tickets</t>
                 <t t-set="placeholder_count" t-value="'ticket_count'"/>
             </t>
+        </div>
+    </template>
+
+    <template id="portal_breadcrumbs_ticket" name="Portal Breadcrumbs: tickets"
+              inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'ticket'" class="breadcrumb-item">
+                <a t-if="ticket" href="/my/tickets">Support Tickets</a>
+                <t t-else="">Support Tickets</t>
+            </li>
+            <li t-if="ticket" class="breadcrumb-item active">
+                <span t-field="ticket.name"/>
+            </li>
         </xpath>
     </template>
 
@@ -55,6 +71,10 @@
         <t t-call="portal.portal_layout">
             <div class="row">
                 <div class="col-12">
+                    <a href="/my/tickets" class="btn btn-sm btn-secondary mb-3">
+                        <i class="oi oi-arrow-left me-1" role="img" aria-label="Back"/>
+                        Back to Tickets
+                    </a>
                     <h3><span t-field="ticket.name"/> — <span t-field="ticket.title"/></h3>
                     <p><strong>Status:</strong> <span t-field="ticket.state"/></p>
                     <p><strong>Priority:</strong> <span t-field="ticket.priority"/></p>
@@ -64,6 +84,7 @@
             <div class="mt-4">
                 <t t-call="portal.message_thread">
                     <t t-set="object" t-value="ticket"/>
+                    <t t-set="token" t-value="ticket.access_token"/>
                 </t>
             </div>
         </t>

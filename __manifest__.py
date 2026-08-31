@@ -34,6 +34,7 @@ Features:
     'data': [
         'security/ir.model.access.csv',
         'data/ir_sequence.xml',
+        'data/mail_template.xml',
         'security/security.xml',
         'views/views.xml',
         'views/portal_templates.xml',

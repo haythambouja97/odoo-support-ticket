@@ -23,6 +23,7 @@ class SupportTicketPortal(CustomerPortal):
     def portal_ticket_detail(self, ticket_id, **kw):
         ticket = request.env['support.ticket'].browse(ticket_id)
         ticket.check_access('read')
+        ticket.sudo()._portal_ensure_token()
         return request.render('support_ticket.portal_ticket_detail', {
             'ticket': ticket,
             'page_name': 'ticket',

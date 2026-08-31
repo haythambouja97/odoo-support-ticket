@@ -13,11 +13,34 @@ class SupportTicket(models.Model):
         for vals in vals_list:
             if vals.get('name', 'New') == 'New':
                 vals['name'] = self.env['ir.sequence'].next_by_code('support.ticket') or 'New'
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        for record in records:
+            if record.customer_id:
+                record.message_subscribe(partner_ids=record.customer_id.ids)
+        return records
 
     @api.model
     def _group_expand_states(self, states, domain):
         return [key for key, _ in type(self).state.selection]
+
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for ticket in self:
+            ticket.access_url = '/my/tickets/%s' % ticket.id
+
+    def _track_template(self, changes):
+        res = super()._track_template(changes)
+        if 'state' in changes:
+            template = self.env.ref(
+                'support_ticket.mail_template_ticket_state',
+                raise_if_not_found=False)
+            if template:
+                res['state'] = (template, {
+                    'auto_delete_keep_log': True,
+                    'author_id': self.env.user.partner_id.id,
+                    'subtype_xmlid': 'mail.mt_comment',
+                })
+        return res
 
     def action_start(self):
         self.write({'state': 'in_progress'})

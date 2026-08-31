@@ -1,0 +1,25 @@
+<odoo>
+    <data>
+        <record id="mail_template_ticket_state" model="mail.template">
+            <field name="name">Support Ticket: status update</field>
+            <field name="model_id" ref="model_support_ticket"/>
+            <field name="subject">{{ object.name }} — {{ object.title }}</field>
+            <field name="email_from" eval="False"/>
+            <field name="partner_to">{{ object.customer_id.id }}</field>
+            <field name="body_html" type="html">
+                <div style="margin:0px;padding:0px;font-size:13px;">
+                    <p>Hello <t t-out="object.customer_id.name or ''"/>,</p>
+                    <p>
+                        Your ticket <strong t-out="object.name or ''"/> is now
+                        <strong t-out="object.state or ''"/>.
+                    </p>
+                    <p t-if="object.description">
+                        <t t-out="object.description or ''"/>
+                    </p>
+                    <p>You can follow it from your account page.</p>
+                </div>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>
